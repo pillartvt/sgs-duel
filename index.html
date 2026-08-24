@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>三国杀·对决 Sanguosha Duel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@400;500;700&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1b140f;
+  --ink-soft:#372a1f;
+  --parchment:#e9dcbd;
+  --parchment-2:#dbc99c;
+  --parchment-3:#f4ead2;
+  --seal:#a5312c;
+  --seal-dark:#7e2320;
+  --gold:#b8934a;
+  --gold-light:#d9b872;
+  --jade:#3f6459;
+  --jade-light:#5c8a7d;
+  --ink-line:rgba(27,20,15,0.18);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    radial-gradient(1200px 800px at 15% -10%, #2a1f16 0%, transparent 60%),
+    radial-gradient(1200px 900px at 110% 10%, #241a12 0%, transparent 55%),
+    var(--ink);
+  color:var(--parchment);
+  font-family:'Noto Sans SC','Noto Serif SC',serif;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--seal);color:#fff;}
+.cjk{font-family:'Noto Serif SC',serif;}
+.en{font-family:'Cinzel','Noto Sans SC',serif;letter-spacing:.03em;}
+button{font-family:inherit;cursor:pointer;}
+button:focus-visible, input:focus-visible, .card:focus-visible{outline:2px solid var(--gold-light);outline-offset:2px;}
+.app{max-width:1180px;margin:0 auto;padding:18px 14px 40px;}
+
+/* ---------- top bar ---------- */
+.topbar{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(216,184,114,0.25);}
+.brand{display:flex;align-items:baseline;gap:10px;}
+.brand .zh{font-size:26px;font-weight:900;color:var(--parchment-3);}
+.brand .sub{font-size:12px;color:var(--gold-light);text-transform:uppercase;}
+.badge-room{font-size:12px;color:var(--gold-light);border:1px solid rgba(216,184,114,0.4);padding:4px 10px;border-radius:20px;}
+
+/* ---------- generic panels ---------- */
+.panel{background:linear-gradient(180deg,rgba(233,220,189,0.06),rgba(233,220,189,0.02));border:1px solid rgba(216,184,114,0.22);border-radius:10px;padding:20px;}
+.center-col{max-width:560px;margin:40px auto;}
+h1.hero{font-size:28px;margin:0 0 4px;color:var(--parchment-3);}
+h1.hero .en{display:block;font-size:13px;color:var(--gold-light);font-weight:600;margin-top:4px;}
+p.lead{color:var(--parchment-2);line-height:1.7;font-size:14px;}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  background:linear-gradient(180deg,var(--seal),var(--seal-dark));
+  color:#fff5e6;border:1px solid rgba(255,255,255,0.15);
+  padding:11px 20px;border-radius:6px;font-size:14px;font-weight:700;
+  box-shadow:0 2px 0 rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+  transition:transform .08s ease, filter .15s ease;
+}
+.btn:hover{filter:brightness(1.08);}
+.btn:active{transform:translateY(1px);}
+.btn.secondary{background:linear-gradient(180deg,#4a3d2f,#2f251b);color:var(--parchment-2);}
+.btn.gold{background:linear-gradient(180deg,var(--gold-light),var(--gold));color:#241a12;}
+.btn:disabled{opacity:.35;filter:grayscale(.4);cursor:not-allowed;box-shadow:none;}
+.btn.small{padding:6px 12px;font-size:12px;}
+input.text{
+  width:100%;background:rgba(0,0,0,0.25);border:1px solid rgba(216,184,114,0.35);
+  color:var(--parchment-3);padding:10px 12px;border-radius:6px;font-size:15px;letter-spacing:.15em;text-align:center;
+}
+.row{display:flex;gap:10px;flex-wrap:wrap;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12px;color:var(--gold-light);margin-bottom:6px;}
+.hint{font-size:12px;color:#a89a7d;margin-top:10px;line-height:1.6;}
+.divider{height:1px;background:rgba(216,184,114,0.2);margin:18px 0;}
+
+/* ---------- general select ---------- */
+.general-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin:16px 0;}
+.gcard{background:rgba(0,0,0,0.22);border:1px solid rgba(216,184,114,0.25);border-radius:10px;padding:12px;text-align:center;transition:.15s;}
+.gcard:hover{border-color:var(--gold-light);transform:translateY(-2px);}
+.gcard.picked{border-color:var(--seal);background:rgba(165,49,44,0.18);}
+.gcard .avatar{width:54px;height:54px;border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#241a12;background:radial-gradient(circle at 35% 30%,var(--gold-light),var(--gold) 70%);}
+.gcard .name-zh{font-size:16px;font-weight:700;}
+.gcard .name-en{font-size:10px;color:var(--gold-light);text-transform:uppercase;}
+.gcard .title{font-size:11px;color:var(--jade-light);margin:4px 0 6px;}
+.gcard .hp{font-size:11px;color:#c98;}
+.gcard .skill{font-size:11px;color:var(--parchment-2);line-height:1.5;margin-top:6px;text-align:left;}
+.gcard .skill .en{display:block;color:#a89a7d;margin-top:2px;}
+
+/* ---------- game board ---------- */
+.board{display:flex;flex-direction:column;gap:10px;}
+.player-row{background:rgba(0,0,0,0.2);border:1px solid rgba(216,184,114,0.2);border-radius:10px;padding:12px 14px;}
+.player-row.active{border-color:var(--gold-light);box-shadow:0 0 0 1px rgba(216,184,114,0.35), 0 0 18px rgba(216,184,114,0.08);}
+.player-head{display:flex;align-items:center;gap:12px;}
+.p-avatar{width:46px;height:46px;flex:0 0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#241a12;background:radial-gradient(circle at 35% 30%,var(--gold-light),var(--gold) 70%);}
+.p-meta{flex:1;min-width:0;}
+.p-name{font-size:14px;font-weight:700;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;}
+.p-name .tag{font-size:10px;color:var(--gold-light);border:1px solid rgba(216,184,114,0.4);padding:1px 6px;border-radius:10px;}
+.p-title{font-size:11px;color:var(--jade-light);}
+.hp-row{display:flex;align-items:center;gap:8px;margin-top:6px;}
+.hp-dots{display:flex;gap:3px;}
+.hp-dot{width:14px;height:14px;border-radius:50%;background:var(--seal);box-shadow:inset 0 1px 2px rgba(0,0,0,.4);}
+.hp-dot.empty{background:transparent;border:1px solid var(--seal);}
+.hp-num{font-size:12px;color:#c98;}
+.equip-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.equip-chip{font-size:10px;background:rgba(63,100,89,0.25);border:1px solid rgba(92,138,125,0.5);color:var(--jade-light);padding:3px 7px;border-radius:5px;}
+.judge-row{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
+.judge-chip{font-size:10px;background:rgba(165,49,44,0.2);border:1px solid rgba(165,49,44,0.5);color:#e6a9a6;padding:3px 7px;border-radius:5px;}
+.hand-count{font-size:11px;color:#a89a7d;margin-left:auto;white-space:nowrap;}
+
+.mid-strip{display:flex;justify-content:space-between;align-items:center;gap:10px;background:rgba(0,0,0,0.15);border:1px dashed rgba(216,184,114,0.25);border-radius:8px;padding:8px 14px;font-size:11px;color:#a89a7d;}
+.mid-strip b{color:var(--gold-light);}
+
+.hand-panel{background:rgba(0,0,0,0.25);border:1px solid rgba(216,184,114,0.25);border-radius:10px;padding:14px;}
+.hand-panel .label{font-size:11px;color:var(--gold-light);margin-bottom:8px;text-transform:uppercase;}
+.hand-fan{display:flex;flex-wrap:wrap;gap:8px;}
+
+.card{
+  width:78px;height:112px;border-radius:8px;position:relative;flex:0 0 auto;
+  background:linear-gradient(160deg,var(--parchment-3),var(--parchment-2));
+  border:1px solid rgba(27,20,15,0.35);
+  box-shadow:0 2px 0 rgba(0,0,0,0.25), 0 4px 8px rgba(0,0,0,0.25);
+  color:var(--ink);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:6px 4px;transition:transform .12s ease, box-shadow .12s ease;
+  user-select:none;
+}
+.card.basic{border-top:4px solid var(--jade);}
+.card.trick{border-top:4px solid var(--seal);}
+.card.equip{border-top:4px solid var(--gold);}
+.card.selectable{cursor:pointer;}
+.card.selectable:hover{transform:translateY(-6px);box-shadow:0 8px 14px rgba(0,0,0,0.35);}
+.card.selected{transform:translateY(-10px);box-shadow:0 0 0 2px var(--gold-light), 0 10px 16px rgba(0,0,0,0.4);}
+.card.disabled{opacity:.4;filter:grayscale(.5);cursor:not-allowed;}
+.card .corner{position:absolute;top:4px;left:5px;font-size:9px;font-weight:700;line-height:1.1;text-align:left;}
+.card .corner.red{color:var(--seal);}
+.card .corner.black{color:var(--ink);}
+.card .cname-zh{font-size:16px;font-weight:700;writing-mode:vertical-rl;text-orientation:upright;margin-top:8px;letter-spacing:1px;}
+.card .cname-en{font-size:8px;text-transform:uppercase;color:#5b4c38;margin-top:5px;text-align:center;letter-spacing:.03em;line-height:1.2;}
+.card.back{background:repeating-linear-gradient(135deg,#5c4a34,#5c4a34 6px,#4a3b28 6px,#4a3b28 12px);border-top:4px solid var(--ink-soft);}
+.card.back .cname-zh,.card.back .cname-en{display:none;}
+.card .mini{font-size:14px;font-weight:900;color:var(--ink-soft);}
+
+.action-bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center;}
+
+.log-panel{background:rgba(0,0,0,0.3);border:1px solid rgba(216,184,114,0.18);border-radius:10px;padding:10px 14px;max-height:150px;overflow-y:auto;font-size:12px;color:#c9bb96;}
+.log-panel .entry{padding:3px 0;border-bottom:1px dotted rgba(216,184,114,0.12);}
+.log-panel .entry .en{display:block;color:#8a7c5f;font-size:10px;}
+
+.pending-banner{background:linear-gradient(180deg,rgba(165,49,44,0.25),rgba(165,49,44,0.1));border:1px solid rgba(165,49,44,0.5);border-radius:8px;padding:12px 14px;margin-bottom:10px;}
+.pending-banner .zh{font-weight:700;font-size:14px;}
+.pending-banner .en{font-size:11px;color:#e6c9c7;margin-top:2px;}
+.pending-banner.mine{border-color:var(--gold-light);background:linear-gradient(180deg,rgba(216,184,114,0.2),rgba(216,184,114,0.06));}
+
+.overlay{position:fixed;inset:0;background:rgba(10,7,4,0.72);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px;}
+.modal{background:var(--parchment-3);color:var(--ink);border-radius:12px;padding:22px;max-width:420px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,0.5);}
+.modal h3{margin:0 0 4px;font-size:18px;}
+.modal h3 .en{display:block;font-size:11px;color:#7e6a4a;font-weight:600;margin-top:2px;}
+.modal .opts{display:flex;flex-direction:column;gap:8px;margin-top:14px;}
+.modal .opt{
+  text-align:left;background:#fff;border:1px solid rgba(27,20,15,0.15);border-radius:8px;padding:10px 12px;
+}
+.modal .opt:hover{border-color:var(--seal);}
+.modal .opt .zh{font-weight:700;font-size:13px;}
+.modal .opt .en{font-size:10px;color:#7e6a4a;}
+
+.help-toggle{position:fixed;bottom:16px;right:16px;z-index:40;}
+.help-body{font-size:12px;line-height:1.7;color:var(--ink);}
+.help-body h4{margin:12px 0 4px;font-size:13px;}
+.help-body .en{color:#7e6a4a;}
+
+.winner-banner{text-align:center;padding:40px 20px;}
+.winner-banner .zh{font-size:34px;font-weight:900;color:var(--gold-light);}
+.winner-banner .en{font-size:14px;color:var(--parchment-2);margin-top:6px;}
+
+@media(max-width:640px){
+  .card{width:64px;height:94px;}
+  .card .cname-zh{font-size:13px;}
+  .general-grid{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<div id="overlayRoot"></div>
+
+<div class="help-toggle">
+  <button class="btn secondary small" onclick="toggleHelp()">规则 Rules</button>
+</div>
+
+<script>
+'use strict';
+/* =========================================================================
+   SANGUOSHA DUEL — a curated core-rules 1v1 implementation
+   三国杀·对决（精简核心规则版）— 双人在线对局
+   ========================================================================= */
+
+/* ---------------------------- DATA: CARDS ------------------------------ */
+const CARD_DEFS = {
+  sha:      {zh:'杀', en:'Slash',            type:'basic'},
+  shan:     {zh:'闪', en:'Dodge',            type:'basic'},
+  tao:      {zh:'桃', en:'Peach',            type:'basic'},
+  jiu:      {zh:'酒', en:'Wine',             type:'basic'},
+  juedou:   {zh:'决斗', en:'Duel',                 type:'trick'},
+  nanman:   {zh:'南蛮入侵', en:'Savage Assault',    type:'trick'},
+  wanjian:  {zh:'万箭齐发', en:'Arrow Rain',        type:'trick'},
+  wzsy:     {zh:'无中生有', en:'Ex Nihilo',         type:'trick'},
+  guohe:    {zh:'过河拆桥', en:'Dismantle',         type:'trick'},
+  shunshou: {zh:'顺手牵羊', en:'Snatch',            type:'trick'},
+  wuxie:    {zh:'无懈可击', en:'Nullification',     type:'trick'},
+  taoyuan:  {zh:'桃园结义', en:'Peach Garden Oath',  type:'trick'},
+  huogong:  {zh:'火攻',     en:'Fire Attack',       type:'trick'},
+  lebu:     {zh:'乐不思蜀', en:'Indulgence',        type:'delay'},
+  bingliang:{zh:'兵粮寸断', en:'Supply Shortage',   type:'delay'},
+  shandian: {zh:'闪电',     en:'Lightning',        type:'delay'},
+  zhugelian:{zh:'诸葛连弩', en:'Repeating Crossbow', type:'weapon', range:1},
+  qingang:  {zh:'青釭剑',   en:'Qinggang Sword',    type:'weapon', range:2},
+  cixiong:  {zh:'雌雄双股剑', en:'Yin-Yang Blades',  type:'weapon', range:2},
+  guanshi:  {zh:'贯石斧',   en:'Boulder Axe',       type:'weapon', range:3},
+  fangtian: {zh:'方天画戟', en:'Sky Halberd',       type:'weapon', range:4},
+  qilin:    {zh:'麒麟弓',   en:'Kirin Bow',         type:'weapon', range:5},
+  bagua:    {zh:'八卦阵',   en:'Eight Diagrams',    type:'armor'},
+  dilu:     {zh:'的卢',     en:'Dilu Horse',        type:'horseminus', delta:-1},
+  chitu:    {zh:'赤兔',     en:'Red Hare',          type:'horseplus', delta:1},
+};
+const DECK_COUNTS = {
+  sha:16, shan:10, tao:6, jiu:3,
+  juedou:4, nanman:3, wanjian:3, wzsy:4, guohe:4, shunshou:4, wuxie:4,
+  taoyuan:1, huogong:2, lebu:2, bingliang:3, shandian:1,
+  zhugelian:1, qingang:1, cixiong:1, guanshi:1, fangtian:1, qilin:1,
+  bagua:1, dilu:1, chitu:1
+};
+const SUITS = ['♠','♥','♦','♣'];
+const RED_SUITS = ['♥','♦'];
+
+/* ---------------------------- DATA: GENERALS ---------------------------- */
+const GENERALS = [
+  {id:'guanyu', zh:'关羽', en:'Guan Yu', title_zh:'武圣', title_en:'Sage of War', hp:4,
+    skill_zh:'武圣：红色手牌可当【杀】使用或打出。', skill_en:'Wusheng: Red cards in hand may be used/played as Slash.'},
+  {id:'zhangfei', zh:'张飞', en:'Zhang Fei', title_zh:'咆哮', title_en:'Roar', hp:4,
+    skill_zh:'咆哮：出【杀】没有次数限制。', skill_en:'Paoxiao: No limit on Slashes played per turn.'},
+  {id:'zhaoyun', zh:'赵云', en:'Zhao Yun', title_zh:'龙胆', title_en:'Dragon Gallantry', hp:4,
+    skill_zh:'龙胆：【杀】可当【闪】，【闪】可当【杀】。', skill_en:'Longdan: Slash may be used as Dodge, and vice versa.'},
+  {id:'caocao', zh:'曹操', en:'Cao Cao', title_zh:'奸雄', title_en:'Villainous Hero', hp:4,
+    skill_zh:'奸雄：因他人使用的牌受到伤害后，获得该牌。', skill_en:'Jianxiong: After being damaged by a card, take that card into hand.'},
+  {id:'huanggai', zh:'黄盖', en:'Huang Gai', title_zh:'苦肉', title_en:'Ruse of Pain', hp:4,
+    skill_zh:'苦肉：出牌阶段限一次，失去1点体力，摸2张牌。', skill_en:'Kurou: Once per turn, lose 1 HP to draw 2 cards.'},
+  {id:'sunshangxiang', zh:'孙尚香', en:'Sun Shangxiang', title_zh:'枭姬', title_en:'Fierce Bride', hp:3,
+    skill_zh:'枭姬：因对方效果而失去手牌后，摸1张牌。', skill_en:'Xiaoji: After losing a hand card to an opponent\'s effect, draw a card.'},
+  {id:'simayi', zh:'司马懿', en:'Sima Yi', title_zh:'反馈', title_en:'Backlash', hp:3,
+    skill_zh:'反馈：因对方使用的牌受到伤害后，获得对方一张牌。', skill_en:'Fankui: After being damaged by an opponent\'s card, take a card from them.'},
+  {id:'daqiao', zh:'大乔', en:'Da Qiao', title_zh:'国色', title_en:'Rare Beauty', hp:3,
+    skill_zh:'国色：方块手牌可当【过河拆桥】使用。', skill_en:'Guose: Diamond cards may be used as Dismantle.'},
+  {id:'ganning', zh:'甘宁', en:'Gan Ning', title_zh:'奇袭', title_en:'Surprise Raid', hp:4,
+    skill_zh:'奇袭：黑色手牌可当【过河拆桥】使用。', skill_en:'Qixi: Black cards may be used as Dismantle.'},
+  {id:'lubu', zh:'吕布', en:'Lu Bu', title_zh:'无双', title_en:'Peerless', hp:4,
+    skill_zh:'无双：你使用【杀】或【决斗】时，目标需连续打出两张【闪】/【杀】才能抵消。', skill_en:'Wushuang: Your Slash/Duel requires two Dodge/Slash in response instead of one.'},
+];
+
+/* ---------------------------- STATE (local) ----------------------------- */
+let myRole = null;      // 'host' | 'guest'
+let roomCode = null;
+let localState = null;  // cached copy of shared room state
+let pollTimer = null;
+let selection = { cardIids: [], mode: null }; // transient UI selection
+let helpOpen = false;
+let lastRenderedVersion = -1;
+
+const STORAGE_PREFIX = 'sgs_room_';
+const ME_KEY = 'sgs_myroom';
+
+/* ---------------------------- UTIL --------------------------------- */
+function uid(n){ let s=''; const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; for(let i=0;i<n;i++) s+=chars[Math.floor(Math.random()*chars.length)]; return s; }
+function iid(){ return 'c'+Math.random().toString(36).slice(2,10); }
+function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function isRed(card){ return RED_SUITS.includes(card.suit); }
+function other(role){ return role==='host' ? 'guest' : 'host'; }
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function esc(s){ return (s+'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function buildDeck(){
+  let cards = [];
+  for(const key in DECK_COUNTS){
+    for(let i=0;i<DECK_COUNTS[key];i++){
+      cards.push({iid:iid(), def:key});
+    }
+  }
+  cards = shuffle(cards);
+  cards.forEach((c,i)=>{ c.suit = SUITS[i%4]; c.point = (i%13)+1; });
+  return shuffle(cards);
+}
+
+function generalById(id){ return GENERALS.find(g=>g.id===id); }
+
+/* ---------------------------- STORAGE HELPERS ---------------------------- */
+async function readRoom(code){
+  try{
+    const r = await window.storage.get(STORAGE_PREFIX+code, true);
+    if(!r) return null;
+    return JSON.parse(r.value);
+  }catch(e){ return null; }
+}
+async function writeRoom(code, state){
+  state.updatedAt = Date.now();
+  await window.storage.set(STORAGE_PREFIX+code, JSON.stringify(state), true);
+  localState = state;
+  lastRenderedVersion = -1;
+  render();
+}
+async function saveMe(code, role){
+  try{ await window.storage.set(ME_KEY, JSON.stringify({code,role}), false); }catch(e){}
+}
+async function loadMe(){
+  try{
+    const r = await window.storage.get(ME_KEY, false);
+    if(!r) return null;
+    return JSON.parse(r.value);
+  }catch(e){ return null; }
+}
+async function clearMe(){
+  try{ await window.storage.delete(ME_KEY, false); }catch(e){}
+}
+
+/* A mutate-and-write helper: refetch latest, apply fn, write back. */
+async function mutate(fn){
+  let cur = await readRoom(roomCode);
+  if(!cur) cur = localState;
+  cur.version = (cur.version||0)+1;
+  fn(cur);
+  await writeRoom(roomCode, cur);
+}
+
+function log(state, zh, en){
+  state.log = state.log || [];
+  state.log.push({zh, en});
+  if(state.log.length>40) state.log.shift();
+}
+
+/* ---------------------------- GAME SETUP ---------------------------- */
+function startBattle(state){
+  state.deck = buildDeck();
+  state.discard = [];
+  const first = Math.random()<0.5 ? 'host':'guest';
+  ['host','guest'].forEach(role=>{
+    const p = state.players[role];
+    const g = generalById(p.generalId);
+    p.hp = g.hp; p.maxHp = g.hp;
+    p.hand = [];
+    p.equip = {weapon:null, armor:null, horseplus:null, horseminus:null};
+    p.judge = [];
+    p.turnFlags = {};
+  });
+  // deal starting hands = HP
+  ['host','guest'].forEach(role=>{
+    const p = state.players[role];
+    for(let i=0;i<p.hp;i++) drawOne(state, role);
+  });
+  state.turn = {activePlayer:first, phase:'start', turnCount:1, shaPlayedCount:0, kurouUsed:false};
+  state.pending = null;
+  state.winner = null;
+  state.phase = 'playing';
+  log(state, `对局开始，${state.players[first].name} 先手。`, `Battle begins. ${state.players[first].name} goes first.`);
+}
+
+function drawOne(state, role){
+  if(state.deck.length===0){
+    if(state.discard.length===0) return null;
+    state.deck = shuffle(state.discard);
+    state.discard = [];
+  }
+  const c = state.deck.pop();
+  state.players[role].hand.push(c);
+  return c;
+}
+
+function findHandCard(state, role, iidVal){
+  const p = state.players[role];
+  const idx = p.hand.findIndex(c=>c.iid===iidVal);
+  return idx>=0 ? {idx, card:p.hand[idx]} : null;
+}
+function removeHandCard(state, role, iidVal){
+  const p = state.players[role];
+  const idx = p.hand.findIndex(c=>c.iid===iidVal);
+  if(idx<0) return null;
+  return p.hand.splice(idx,1)[0];
+}
+function toDiscard(state, card){ if(card) state.discard.push(card); }
+
+function maxHandSize(state, role){ return Math.max(0, state.players[role].hp); }
+
+function distanceBetween(state, from, to){
+  let d = 1;
+  const pf = state.players[from], pt = state.players[to];
+  if(pf.equip.horseminus) d += CARD_DEFS[pf.equip.horseminus.def].delta; // negative
+  if(pt.equip.horseplus) d += CARD_DEFS[pt.equip.horseplus.def].delta; // positive
+  return Math.max(1, d);
+}
+function attackRange(state, role){
+  const w = state.players[role].equip.weapon;
+  return w ? CARD_DEFS[w.def].range : 1;
+}
+
+/* general skill helpers */
+function hasGeneral(state, role, gid){ return state.players[role].generalId === gid; }
+function shaLimit(state, role){
+  if(hasGeneral(state, role, 'zhangfei')) return Infinity;
+  const w = state.players[role].equip.weapon;
+  if(w && w.def==='zhugelian') return Infinity;
+  return 1;
+}
+function eligibleAsSha(state, role, card){
+  if(card.def==='sha') return true;
+  if(hasGeneral(state, role, 'guanyu') && isRed(card)) return true;
+  if(hasGeneral(state, role, 'zhaoyun') && card.def==='shan') return true;
+  return false;
+}
+function eligibleAsShan(state, role, card){
+  if(card.def==='shan') return true;
+  if(hasGeneral(state, role, 'zhaoyun') && card.def==='sha') return true;
+  return false;
+}
+function eligibleAsGuohe(state, role, card){
+  if(card.def==='guohe') return true;
+  if(hasGeneral(state, role, 'daqiao') && card.suit==='♦') return true;
+  if(hasGeneral(state, role, 'ganning') && (card.suit==='♠'||card.suit==='♣')) return true;
+  return false;
+}
+
+function onCardLostToOpponentEffect(state, role){
+  if(hasGeneral(state, role, 'sunshangxiang')){
+    drawOne(state, role);
+    log(state, `${state.players[role].name}（枭姬）因失去手牌摸1张牌。`, `${state.players[role].name} (Xiaoji) draws a card after losing one.`);
+  }
+}
+
+function dealDamage(state, targetRole, amount, sourceRole, sourceCard){
+  const p = state.players[targetRole];
+  p.hp -= amount;
+  log(state, `${p.name} 受到 ${amount} 点伤害（体力：${p.hp}/${p.maxHp}）。`, `${p.name} takes ${amount} damage (HP ${p.hp}/${p.maxHp}).`);
+  // Jianxiong / Fankui triggers
+  if(sourceRole && sourceRole!==targetRole && sourceCard){
+    if(hasGeneral(state, targetRole, 'caocao')){
+      const idx = state.discard.findIndex(c=>c.iid===sourceCard.iid);
+      if(idx>=0) state.discard.splice(idx,1);
+      p.hand.push(sourceCard);
+      log(state, `${p.name}（奸雄）获得了伤害来源的那张牌。`, `${p.name} (Jianxiong) takes the damaging card into hand.`);
+    } else if(hasGeneral(state, targetRole, 'simayi')){
+      const opp = state.players[sourceRole];
+      let taken = null;
+      if(opp.hand.length>0){
+        const idx = Math.floor(Math.random()*opp.hand.length);
+        taken = opp.hand.splice(idx,1)[0];
+        p.hand.push(taken);
+      } else {
+        const slots = ['weapon','armor','horseplus','horseminus'];
+        for(const s of slots){ if(opp.equip[s]){ taken = opp.equip[s]; opp.equip[s]=null; p.hand.push(taken); break; } }
+      }
+      if(taken) log(state, `${p.name}（反馈）获得了对方一张牌。`, `${p.name} (Fankui) takes a card from the opponent.`);
+    }
+  }
+  checkDeath(state, targetRole);
+}
+
+function checkDeath(state, role){
+  if(state.players[role].hp<=0){
+    state.phase='over';
+    state.winner = other(role);
+    log(state, `${state.players[role].name} 阵亡，${state.players[state.winner].name} 获胜！`, `${state.players[role].name} has fallen. ${state.players[state.winner].name} wins!`);
+  }
+}
+
+/* ---------------------------- TURN ENGINE (run by active player's client) --- */
+async function runAutoPhases(){
+  // Only the active player's client advances start->judge->draw, then stops at play.
+  if(!localState || localState.phase!=='playing') return;
+  const t = localState.turn;
+  if(t.activePlayer !== myRole) return;
+  if(localState.pending) return;
+  if(t.phase==='start'){
+    await mutate(s=>{ s.turn.phase='judge'; s.turn.shaPlayedCount=0; s.turn.kurouUsed=false; });
+    return;
+  }
+  if(t.phase==='judge'){
+    await mutate(s=>{
+      const p = s.players[myRole];
+      if(p.judge.length>0){
+        resolveOneJudgment(s, myRole);
+      } else {
+        s.turn.phase='draw';
+      }
+    });
+    return;
+  }
+  if(t.phase==='draw'){
+    await mutate(s=>{
+      const p = s.players[myRole];
+      let skip = p.turnFlags && p.turnFlags.skipDraw;
+      if(!skip){ drawOne(s, myRole); drawOne(s, myRole); log(s, `${p.name} 摸2张牌。`, `${p.name} draws 2 cards.`); }
+      else { log(s, `${p.name} 因判定跳过摸牌阶段。`, `${p.name} skips the draw phase (judgment).`); }
+      p.turnFlags.skipDraw=false;
+      s.turn.phase='play';
+    });
+    return;
+  }
+  if(t.phase==='play'){
+    const p = localState.players[myRole];
+    if(p.turnFlags && p.turnFlags.skipPlay){
+      await mutate(s=>{
+        log(s, `${s.players[myRole].name} 因判定跳过出牌阶段。`, `${s.players[myRole].name} skips the play phase (judgment).`);
+        s.players[myRole].turnFlags.skipPlay=false;
+        s.turn.phase='discard';
+      });
+    }
+    return; // wait for player actions
+  }
+  if(t.phase==='discard'){
+    const p = localState.players[myRole];
+    const limit = maxHandSize(localState, myRole);
+    if(p.hand.length<=limit){
+      await mutate(s=>{ s.turn.phase='end'; });
+    }
+    // else: UI shows discard picker
+    return;
+  }
+  if(t.phase==='end'){
+    await mutate(s=>{
+      const nxt = other(myRole);
+      s.turn = {activePlayer:nxt, phase:'start', turnCount:s.turn.turnCount+1, shaPlayedCount:0, kurouUsed:false};
+    });
+    return;
+  }
+}
+
+function resolveOneJudgment(state, role){
+  const p = state.players[role];
+  const dj = p.judge.shift();
+  const card = state.deck.length? state.deck.pop() : (state.discard.length? (state.deck=shuffle(state.discard), state.discard=[], state.deck.pop()) : null);
+  if(!card){ return; }
+  log(state, `${p.name} 判定【${CARD_DEFS[dj.def].zh}】：翻出 ${card.suit}${card.point}。`, `${p.name} judges [${CARD_DEFS[dj.def].en}]: revealed ${card.suit}${card.point}.`);
+  if(dj.def==='lebu'){
+    if(!isRed(card)){ p.turnFlags = p.turnFlags||{}; p.turnFlags.skipPlay = true; log(state,`判定生效，跳过出牌阶段。`,`Effect triggers: skip play phase.`); }
+    state.discard.push(card); state.discard.push(dj);
+  } else if(dj.def==='bingliang'){
+    if(card.suit!=='♣'){ p.turnFlags = p.turnFlags||{}; p.turnFlags.skipDraw = true; log(state,`判定生效，跳过摸牌阶段。`,`Effect triggers: skip draw phase.`); }
+    state.discard.push(card); state.discard.push(dj);
+  } else if(dj.def==='shandian'){
+    if(card.suit==='♠' && card.point>=2 && card.point<=9){
+      state.discard.push(card); state.discard.push(dj);
+      dealDamage(state, role, 3, null, null);
+      log(state, `雷击造成3点伤害！`, `Lightning strikes for 3 damage!`);
+    } else {
+      state.discard.push(card);
+      const nxt = other(role);
+      state.players[nxt].judge.push(dj);
+      log(state, `未触发，闪电移至对方判定区。`, `No effect; Lightning passes to the opponent.`);
+    }
+  }
+  if(p.judge.length===0) state.turn.phase = state.turn.phase; // stay in judge, loop continues next tick if more
+}
+
+/* ---------------------------- PLAYER ACTIONS ---------------------------- */
+async function actionPlaySha(targetIid){
+  await mutate(s=>{
+    const role = myRole, opp = other(role);
+    const p = s.players[role];
+    const card = removeHandCard(s, role, targetIid);
+    if(!card) return;
+    s.turn.shaPlayedCount++;
+    const needed = hasGeneral(s, role, 'lubu') ? 2 : 1;
+    s.pending = {type:'sha', attacker:role, defender:opp, card, needed, given:0, awaiting:opp, dmg:1};
+    log(s, `${p.name} 对 ${s.players[opp].name} 使用【杀】。`, `${p.name} plays Slash at ${s.players[opp].name}.`);
+  });
+}
+async function actionPlayJiuBoost(){
+  await mutate(s=>{
+    const role = myRole;
+    const idx = s.players[role].hand.findIndex(c=>c.def==='jiu');
+    if(idx<0) return;
+    const card = s.players[role].hand.splice(idx,1)[0];
+    s.discard.push(card);
+    s.players[role].turnFlags = s.players[role].turnFlags||{};
+    s.players[role].turnFlags.wineBoost = true;
+    log(s, `${s.players[role].name} 使用【酒】，下一张【杀】伤害+1。`, `${s.players[role].name} drinks Wine: next Slash deals +1 damage.`);
+  });
+}
+async function actionJiuHeal(){
+  await mutate(s=>{
+    const role = myRole; const p = s.players[role];
+    if(p.hp>=p.maxHp) return;
+    const idx = p.hand.findIndex(c=>c.def==='jiu');
+    if(idx<0) return;
+    const card = p.hand.splice(idx,1)[0];
+    s.discard.push(card);
+    p.hp = clamp(p.hp+1, 0, p.maxHp);
+    log(s, `${p.name} 饮酒回复1点体力。`, `${p.name} drinks Wine to heal 1 HP.`);
+  });
+}
+async function actionPlayTao(){
+  await mutate(s=>{
+    const role = myRole; const p = s.players[role];
+    if(p.hp>=p.maxHp) return;
+    const idx = p.hand.findIndex(c=>c.def==='tao');
+    if(idx<0) return;
+    const card = p.hand.splice(idx,1)[0];
+    s.discard.push(card);
+    p.hp = clamp(p.hp+1, 0, p.maxHp);
+    log(s, `${p.name} 使用【桃】回复1点体力。`, `${p.name} uses Peach to heal 1 HP.`);
+  });
+}
+async function actionPlayEquip(cardIid){
+  await mutate(s=>{
+    const role = myRole; const p = s.players[role];
+    const card = removeHandCard(s, role, cardIid);
+    if(!card) return;
+    const def = CARD_DEFS[card.def];
+    let slot = def.type==='weapon' ? 'weapon' : def.type==='armor' ? 'armor' : def.type;
+    const oldCard = p.equip[slot];
+    if(oldCard) s.discard.push(oldCard);
+    p.equip[slot] = card;
+    log(s, `${p.name} 装备了【${def.zh}】。`, `${p.name} equips [${def.en}].`);
+  });
+}
+async function actionPlayWuzhongshengyou(){
+  await mutate(s=>{
+    const role = myRole;
+    const idx = s.players[role].hand.findIndex(c=>c.def==='wzsy');
+    if(idx<0) return;
+    const card = s.players[role].hand.splice(idx,1)[0];
+    s.pending = {type:'nullify-window', caster:role, target:null, card, effect:'wzsy', awaiting:other(role), passed:false};
+    log(s, `${s.players[role].name} 使用【无中生有】。`, `${s.players[role].name} plays Ex Nihilo.`);
+  });
+}
+async function actionPlayTaoyuan(){
+  await mutate(s=>{
+    const role = myRole;
+    const idx = s.players[role].hand.findIndex(c=>c.def==='taoyuan');
+    if(idx<0) return;
+    const card = s.players[role].hand.splice(idx,1)[0];
+    s.pending = {type:'nullify-window', caster:role, target:null, card, effect:'taoyuan', awaiting:other(role), passed:false};
+    log(s, `${s.players[role].name} 使用【桃园结义】。`, `${s.players[role].name} plays Peach Garden Oath.`);
+  });
+}
+async function actionPlayAoe(defKey){ // nanman or wanjian
+  await mutate(s=>{
+    const role = myRole;
+    const idx = s.players[role].hand.findIndex(c=>c.def===defKey);
+    if(idx<0) return;
+    const card = s.players[role].hand.splice(idx,1)[0];
+    s.pending = {type:'nullify-window', caster:role, target:other(role), card, effect:defKey, awaiting:other(role), passed:false};
+    log(s, `${s.players[role].name} 使用【${CARD_DEFS[defKey].zh}】。`, `${s.players[role].name} plays [${CARD_DEFS[defKey].en}].`);
+  });
+}
+async function actionPlayJuedou(){
+  await mutate(s=>{
+    const role = myRole;
+    const idx = s.players[role].hand.findIndex(c=>c.def==='juedou');
+    if(idx<0) return;
+    const card = s.players[role].hand.splice(idx,1)[0];
+    s.pending = {type:'nullify-window', caster:role, target:other(role), card, effect:'juedou', awaiting:other(role), passed:false};
+    log(s, `${s.players[role].name} 对 ${s.players[other(role)].name} 使用【决斗】。`, `${s.players[role].name} duels ${s.players[other(role)].name}.`);
+  });
+}
+async function actionPlayGuoheOrEquiv(cardIid, targetSlotChoice){
+  await mutate(s=>{
+    const role = myRole;
+    const card = removeHandCard(s, role, cardIid);
+    if(!card) return;
+    s.pending = {type:'nullify-window', caster:role, target:other(role), card, effect:'guohe', slotChoice:targetSlotChoice, awaiting:other(role), passed:false};
+    log(s, `${s.players[role].name} 使用【过河拆桥】。`, `${s.players[role].name} plays Dismantle.`);
+  });
+}
+async function actionPlayShunshou(cardIid, targetSlotChoice){
+  await mutate(s=>{
+    const role = myRole;
+    if(distanceBetween(s, role, other(role))>1) return;
+    const card = removeHandCard(s, role, cardIid);
+    if(!card) return;
+    s.pending = {type:'nullify-window', caster:role, target:other(role), card, effect:'shunshou', slotChoice:targetSlotChoice, awaiting:other(role), passed:false};
+    log(s, `${s.players[role].name} 使用【顺手牵羊】。`, `${s.players[role].name} plays Snatch.`);
+  });
+}
+async function actionPlayDelay(defKey){
+  await mutate(s=>{
+    const role = myRole;
+    const idx = s.players[role].hand.findIndex(c=>c.def===defKey);
+    if(idx<0) return;
+    const card = s.players[role].hand.splice(idx,1)[0];
+    s.pending = {type:'nullify-window', caster:role, target:other(role), card, effect:defKey, awaiting:other(role), passed:false};
+    log(s, `${s.players[role].name} 对 ${s.players[other(role)].name} 使用【${CARD_DEFS[defKey].zh}】。`, `${s.players[role].name} plays [${CARD_DEFS[defKey].en}] on ${s.players[other(role)].name}.`);
+  });
+}
+async function actionPlayHuogong(cardIid, chosenSuit){
+  await mutate(s=>{
+    const role = myRole;
+    const card = removeHandCard(s, role, cardIid);
+    if(!card) return;
+    s.pending = {type:'nullify-window', caster:role, target:other(role), card, effect:'huogong', suit:chosenSuit, awaiting:other(role), passed:false};
+    log(s, `${s.players[role].name} 使用【火攻】，宣告花色 ${chosenSuit}。`, `${s.players[role].name} plays Fire Attack, naming suit ${chosenSuit}.`);
+  });
+}
+async function actionUseKurou(){
+  await mutate(s=>{
+    const role = myRole; const p = s.players[role];
+    if(p.hp<=1 || s.turn.kurouUsed) return;
+    p.hp -= 1;
+    s.turn.kurouUsed = true;
+    drawOne(s, role); drawOne(s, role);
+    log(s, `${p.name}（苦肉）失去1点体力，摸2张牌。`, `${p.name} (Kurou) loses 1 HP, draws 2 cards.`);
+    checkDeath(s, role);
+  });
+}
+async function actionEndPlayPhase(){
+  await mutate(s=>{ s.turn.phase='discard'; });
+}
+async function actionDiscard(cardIids){
+  await mutate(s=>{
+    const role = myRole; const p = s.players[role];
+    cardIids.forEach(cid=>{ const c = removeHandCard(s, role, cid); if(c) s.discard.push(c); });
+    log(s, `${p.name} 弃置了 ${cardIids.length} 张手牌。`, `${p.name} discards ${cardIids.length} card(s).`);
+    s.turn.phase='end';
+  });
+}
+
+/* ---- responses to pending actions (executed by the "awaiting" client) ---- */
+async function respondNullifyWindow(playCardIid){
+  await mutate(s=>{
+    const pend = s.pending;
+    if(!pend || pend.type!=='nullify-window') return;
+    const role = myRole;
+    if(pend.awaiting!==role) return;
+    if(playCardIid){
+      const card = removeHandCard(s, role, playCardIid);
+      if(!card) return;
+      s.discard.push(card);
+      s.discard.push(pend.card);
+      log(s, `${s.players[role].name} 使用【无懈可击】，抵消了该锦囊。`, `${s.players[role].name} plays Nullification, canceling the effect.`);
+      s.pending = null;
+      advanceAfterPending(s);
+    } else {
+      resolvePendingEffect(s);
+    }
+  });
+}
+
+function resolvePendingEffect(state){
+  const pend = state.pending;
+  const caster = pend.caster, card = pend.card, effect = pend.effect;
+  const targetRole = pend.target;
+  switch(effect){
+    case 'wzsy': {
+      drawOne(state, caster); drawOne(state, caster);
+      state.discard.push(card);
+      log(state, `${state.players[caster].name} 无中生有，摸2张牌。`, `${state.players[caster].name} draws 2 from Ex Nihilo.`);
+      state.pending = null; advanceAfterPending(state); break;
+    }
+    case 'taoyuan': {
+      ['host','guest'].forEach(r=>{ const p=state.players[r]; p.hp = clamp(p.hp+1,0,p.maxHp); });
+      state.discard.push(card);
+      log(state, `桃园结义：双方各回复1点体力。`, `Peach Garden Oath: both players heal 1 HP.`);
+      state.pending = null; advanceAfterPending(state); break;
+    }
+    case 'nanman': {
+      state.discard.push(card);
+      state.pending = {type:'aoe-need', kind:'sha', caster, defender:targetRole, awaiting:targetRole, dmg:1, effect:'nanman'};
+      break;
+    }
+    case 'wanjian': {
+      state.discard.push(card);
+      state.pending = {type:'aoe-need', kind:'shan', caster, defender:targetRole, awaiting:targetRole, dmg:1, effect:'wanjian'};
+      break;
+    }
+    case 'juedou': {
+      state.discard.push(card);
+      state.pending = {type:'duel', a:caster, b:targetRole, awaiting:targetRole, turnHolder:targetRole};
+      break;
+    }
+    case 'guohe': case 'shunshou': {
+      state.discard.push(card);
+      const tp = state.players[targetRole];
+      let taken = null;
+      const choice = pend.slotChoice; // 'hand' | 'weapon' | 'armor' | 'horseplus' | 'horseminus'
+      if(choice==='hand'){
+        if(tp.hand.length>0){ const i = Math.floor(Math.random()*tp.hand.length); taken = tp.hand.splice(i,1)[0]; }
+      } else if(tp.equip[choice]){ taken = tp.equip[choice]; tp.equip[choice]=null; }
+      if(taken){
+        if(effect==='shunshou'){ state.players[caster].hand.push(taken); }
+        else { state.discard.push(taken); }
+        onCardLostToOpponentEffect(state, targetRole);
+        log(state, `${state.players[caster].name} ${effect==='shunshou'?'夺取':'拆除'}了对方一张牌。`, `${state.players[caster].name} ${effect==='shunshou'?'takes':'discards'} a card from the opponent.`);
+      } else {
+        log(state, `目标没有可选的牌，效果落空。`, `No valid card on target; effect fizzles.`);
+      }
+      state.pending = null; advanceAfterPending(state); break;
+    }
+    case 'huogong': {
+      const tp = state.players[targetRole];
+      const idx = tp.hand.findIndex(c=>c.suit===pend.suit);
+      state.discard.push(card);
+      if(idx>=0){
+        const c = tp.hand.splice(idx,1)[0];
+        state.discard.push(c);
+        onCardLostToOpponentEffect(state, targetRole);
+        log(state, `${tp.name} 弃置了同花色的牌，受到1点火焰伤害。`, `${tp.name} discards a matching-suit card and takes 1 fire damage.`);
+        dealDamage(state, targetRole, 1, caster, null);
+      } else {
+        log(state, `${tp.name} 没有同花色手牌，火攻落空。`, `${tp.name} has no matching-suit card; Fire Attack fizzles.`);
+      }
+      state.pending = null; advanceAfterPending(state); break;
+    }
+    case 'lebu': case 'bingliang': case 'shandian': {
+      state.players[targetRole].judge.push(card);
+      log(state, `延时锦囊放入 ${state.players[targetRole].name} 的判定区。`, `Delayed trick placed in ${state.players[targetRole].name}'s judgment zone.`);
+      state.pending = null; advanceAfterPending(state); break;
+    }
+    default: state.pending = null; advanceAfterPending(state);
+  }
+}
+
+function advanceAfterPending(state){
+  // After a pending resolves with no follow-up, control returns implicitly:
+  // whichever client is activePlayer will keep polling and continue their phase.
+}
+
+async function respondShaAttempt(cardIids){ // defender tries to block with shan(s)
+  await mutate(s=>{
+    const pend = s.pending;
+    if(!pend || pend.type!=='sha') return;
+    const role = myRole;
+    if(pend.awaiting!==role) return;
+    if(cardIids && cardIids.length){
+      let ok = 0;
+      const removed = [];
+      cardIids.forEach(cid=>{
+        const found = findHandCard(s, role, cid);
+        if(found && eligibleAsShan(s, role, found.card)){ removed.push(cid); }
+      });
+      removed.forEach(cid=>{ const c = removeHandCard(s, role, cid); s.discard.push(c); ok++; });
+      if(ok>=pend.needed){
+        log(s, `${s.players[role].name} 使用【闪】，抵消了【杀】。`, `${s.players[role].name} dodges the Slash.`);
+        s.pending = null; advanceAfterPending(s);
+        return;
+      }
+    }
+    // not enough dodges -> take damage
+    let dmg = pend.dmg;
+    if(s.players[pend.attacker].turnFlags && s.players[pend.attacker].turnFlags.wineBoost){ dmg+=1; s.players[pend.attacker].turnFlags.wineBoost=false; }
+    s.discard.push(pend.card);
+    const attacker = pend.attacker;
+    dealDamage(s, role, dmg, attacker, pend.card);
+    s.pending = null; advanceAfterPending(s);
+  });
+}
+async function respondAoe(cardIid){ // defender responds to nanman(sha)/wanjian(shan)
+  await mutate(s=>{
+    const pend = s.pending;
+    if(!pend || pend.type!=='aoe-need') return;
+    const role = myRole;
+    if(pend.awaiting!==role) return;
+    let blocked = false;
+    if(cardIid){
+      const found = findHandCard(s, role, cardIid);
+      if(found){
+        const ok = pend.kind==='sha' ? eligibleAsSha(s, role, found.card) : eligibleAsShan(s, role, found.card);
+        if(ok){ const c = removeHandCard(s, role, cardIid); s.discard.push(c); blocked = true; }
+      }
+    }
+    if(blocked){
+      log(s, `${s.players[role].name} 抵消了群体效果。`, `${s.players[role].name} resists the area effect.`);
+    } else {
+      dealDamage(s, role, pend.dmg, pend.caster, null);
+    }
+    s.pending = null; advanceAfterPending(s);
+  });
+}
+async function respondDuel(cardIid){
+  await mutate(s=>{
+    const pend = s.pending;
+    if(!pend || pend.type!=='duel') return;
+    const role = myRole;
+    if(pend.awaiting!==role) return;
+    const other_ = pend.a===role ? pend.b : pend.a;
+    if(cardIid){
+      const found = findHandCard(s, role, cardIid);
+      if(found && eligibleAsSha(s, role, found.card)){
+        const c = removeHandCard(s, role, cardIid); s.discard.push(c);
+        pend.awaiting = other_;
+        log(s, `${s.players[role].name} 打出【杀】，轮到对方。`, `${s.players[role].name} plays Slash; opponent's turn.`);
+        return;
+      }
+    }
+    // can't/won't respond -> takes damage; other party is the "winner" of this exchange
+    const loser = role;
+    const winner = other_;
+    const needed = hasGeneral(s, winner, 'lubu') ? 2 : 1;
+    dealDamage(s, loser, 1, winner, null);
+    if(needed>1 && s.players[loser].hp>0){
+      // simplified: Wushuang duel just deals the single hit; extra requirement mainly affects Slash/basic duel exchange count in this simplified engine
+    }
+    s.pending = null; advanceAfterPending(s);
+  });
+}
+
+/* ---------------------------- RENDER ---------------------------- */
+function toggleHelp(){ helpOpen = !helpOpen; render(); }
+
+function render(){
+  const app = document.getElementById('app');
+  if(!roomCode || !localState){
+    app.innerHTML = renderHome();
+    renderOverlay();
+    return;
+  }
+  const s = localState;
+  if(s.phase==='lobby') app.innerHTML = renderLobby(s);
+  else if(s.phase==='select') app.innerHTML = renderSelect(s);
+  else if(s.phase==='playing') app.innerHTML = renderGame(s);
+  else if(s.phase==='over') app.innerHTML = renderGame(s) + renderGameOver(s);
+  renderOverlay();
+}
+
+function renderHome(){
+  return `
+  <div class="topbar">
+    <div class="brand"><span class="zh cjk">三国杀 · 对决</span><span class="sub en">Sanguosha Duel</span></div>
+  </div>
+  <div class="center-col panel">
+    <h1 class="hero cjk">双人在线对局<span class="en">Two-Player Online Duel</span></h1>
+    <p class="lead">创建房间并把房间号分享给对方，或输入对方的房间号加入。两人各自选择一位武将，展开三国杀核心规则对决。<br>
+    <span style="color:#a89a7d">Create a room and share the code, or join with a code. Each player picks a general, then duel using the core rules.</span></p>
+    <div class="divider"></div>
+    <div class="field">
+      <button class="btn" onclick="createRoom()">创建房间 Create Room</button>
+    </div>
+    <div class="field">
+      <label>加入房间 · Join with code</label>
+      <div class="row">
+        <input class="text" id="joinCode" maxlength="5" placeholder="ROOM CODE" style="flex:1">
+        <button class="btn secondary" onclick="joinRoomClick()">加入 Join</button>
+      </div>
+    </div>
+    <p class="hint">提示：也可以自己打开两个浏览器标签页测试对局。<br>Tip: you can also open two browser tabs yourself to test a match.</p>
+  </div>`;
+}
+
+function renderLobby(s){
+  const meP = s.players[myRole];
+  const oppRole = other(myRole);
+  const oppP = s.players[oppRole];
+  return `
+  <div class="topbar">
+    <div class="brand"><span class="zh cjk">三国杀 · 对决</span><span class="sub en">Sanguosha Duel</span></div>
+    <div class="badge-room">房间 ROOM: ${esc(roomCode)}</div>
+  </div>
+  <div class="center-col panel">
+    <h1 class="hero cjk">等待对手加入…<span class="en">Waiting for opponent…</span></h1>
+    <p class="lead">把房间号发给朋友：<b style="color:var(--gold-light);font-size:18px;letter-spacing:.2em">${esc(roomCode)}</b></p>
+    <div class="divider"></div>
+    <p>你 You: <b>${esc(meP.name)}</b></p>
+    <p>对手 Opponent: ${oppP ? `<b>${esc(oppP.name)}</b>` : '<span style="color:#a89a7d">尚未加入 Not joined yet</span>'}</p>
+    ${oppP ? `<button class="btn" onclick="hostAdvanceToSelect()" ${myRole!=='host'?'disabled':''}>${myRole==='host'?'开始选将 Start General Select':'等待房主开始 Waiting for host...'}</button>` : ''}
+    <div class="divider"></div>
+    <button class="btn secondary small" onclick="leaveRoom()">离开房间 Leave</button>
+  </div>`;
+}
+
+function renderSelect(s){
+  const meP = s.players[myRole];
+  const oppP = s.players[other(myRole)];
+  const cards = GENERALS.map(g=>{
+    const picked = meP.generalId===g.id;
+    return `<div class="gcard ${picked?'picked':''}" onclick="pickGeneral('${g.id}')">
+      <div class="avatar cjk">${g.zh[0]}</div>
+      <div class="name-zh cjk">${g.zh}</div>
+      <div class="name-en en">${esc(g.en)}</div>
+      <div class="title cjk">${g.title_zh} <span class="en">${esc(g.title_en)}</span></div>
+      <div class="hp">体力 HP ${g.hp}</div>
+      <div class="skill">${g.skill_zh}<span class="en">${g.skill_en}</span></div>
+    </div>`;
+  }).join('');
+  return `
+  <div class="topbar">
+    <div class="brand"><span class="zh cjk">三国杀 · 对决</span><span class="sub en">Sanguosha Duel</span></div>
+    <div class="badge-room">房间 ROOM: ${esc(roomCode)}</div>
+  </div>
+  <div class="panel">
+    <h1 class="hero cjk">选择武将<span class="en">Choose Your General</span></h1>
+    <p class="lead">你：${esc(meP.name)} ${meP.generalId?`已选 <b>${generalById(meP.generalId).zh}</b>`:'（未选择）'} &nbsp;|&nbsp; 对手：${oppP ? (oppP.generalId?'已选武将 Ready':'选择中... choosing...') : '尚未加入 Not joined'}</p>
+    <div class="general-grid">${cards}</div>
+    <div class="action-bar">
+      <button class="btn" ${!meP.generalId?'disabled':''} onclick="markReady()">${meP.ready?'已确认 Ready ✓':'确认 Confirm'}</button>
+    </div>
+    <p class="hint">双方都确认后自动开局（由房主客户端发牌）。<br>Once both confirm, the battle begins automatically.</p>
+  </div>`;
+}
+
+function cardHtml(card, opts){
+  opts = opts||{};
+  const def = CARD_DEFS[card.def];
+  const cls = ['card'];
+  if(def.type==='basic') cls.push('basic');
+  else if(def.type==='weapon'||def.type==='armor'||def.type.startsWith('horse')) cls.push('equip');
+  else cls.push('trick');
+  if(opts.selectable) cls.push('selectable');
+  if(opts.selected) cls.push('selected');
+  if(opts.disabled) cls.push('disabled');
+  const suitClass = (card.suit==='♥'||card.suit==='♦') ? 'red':'black';
+  const clickAttr = opts.onclick ? `onclick="${opts.onclick}"` : '';
+  return `<div class="${cls.join(' ')}" ${clickAttr} tabindex="0" title="${esc(def.zh)} ${esc(def.en)}">
+    <div class="corner ${suitClass}">${card.suit}${card.point}</div>
+    <div class="cname-zh cjk">${def.zh}</div>
+    <div class="cname-en en">${esc(def.en)}</div>
+  </div>`;
+}
+function cardBackHtml(){ return `<div class="card back"></div>`; }
+
+function hpDots(p){
+  let out='';
+  for(let i=0;i<p.maxHp;i++) out += `<span class="hp-dot ${i<p.hp?'':'empty'}"></span>`;
+  return out;
+}
+function equipChips(p){
+  const slots = ['weapon','armor','horseplus','horseminus'];
+  return slots.filter(sl=>p.equip[sl]).map(sl=>{
+    const c = p.equip[sl]; const def = CARD_DEFS[c.def];
+    return `<span class="equip-chip cjk">${def.zh} <span class="en">${esc(def.en)}</span></span>`;
+  }).join('') || `<span style="color:#6b5c44;font-size:10px">无装备 No equipment</span>`;
+}
+function judgeChips(p){
+  if(!p.judge || !p.judge.length) return '';
+  return `<div class="judge-row">` + p.judge.map(c=>{
+    const def = CARD_DEFS[c.def];
+    return `<span class="judge-chip cjk">${def.zh} <span class="en">${esc(def.en)}</span></span>`;
+  }).join('') + `</div>`;
+}
+
+function playerPanel(s, role, isMe){
+  const p = s.players[role];
+  const g = generalById(p.generalId);
+  const active = s.turn.activePlayer===role;
+  return `
+  <div class="player-row ${active?'active':''}">
+    <div class="player-head">
+      <div class="p-avatar cjk">${g.zh[0]}</div>
+      <div class="p-meta">
+        <div class="p-name cjk">${p.name} · ${g.zh} <span class="en">${esc(g.en)}</span> ${isMe?'<span class="tag">YOU</span>':''} ${active?'<span class="tag">回合中 TURN</span>':''}</div>
+        <div class="p-title cjk">${g.title_zh} <span class="en">${esc(g.title_en)}</span></div>
+        <div class="hp-row"><div class="hp-dots">${hpDots(p)}</div><span class="hp-num">${p.hp}/${p.maxHp}</span>
+          <span class="hand-count">手牌 Hand: ${p.hand.length}</span>
+        </div>
+        <div class="equip-row">${equipChips(p)}</div>
+        ${judgeChips(p)}
+      </div>
+    </div>
+  </div>`;
+}
+
+const PHASE_LABEL = {start:['准备阶段','Start'],judge:['判定阶段','Judge'],draw:['摸牌阶段','Draw'],play:['出牌阶段','Play'],discard:['弃牌阶段','Discard'],end:['结束阶段','End']};
+
+function renderGame(s){
+  const meRole = myRole, oppRole = other(myRole);
+  const meP = s.players[meRole];
+  const myTurn = s.turn.activePlayer===meRole;
+  const ph = PHASE_LABEL[s.turn.phase]||['',''];
+
+  let pendingHtml = '';
+  if(s.pending) pendingHtml = renderPendingBanner(s);
+
+  let handHtml = meP.hand.map(c=>{
+    const selectable = myTurn && s.turn.phase==='play' && !s.pending;
+    return cardHtml(c, {selectable, selected:selection.cardIids.includes(c.iid), onclick:selectable?`onHandCardClick('${c.iid}')`:null, disabled:!selectable && s.turn.phase==='discard'});
+  }).join('');
+  if(s.turn.phase==='discard' && myTurn){
+    handHtml = meP.hand.map(c=>cardHtml(c,{selectable:true, selected:selection.cardIids.includes(c.iid), onclick:`onHandCardClick('${c.iid}')`})).join('');
+  }
+
+  return `
+  <div class="topbar">
+    <div class="brand"><span class="zh cjk">三国杀 · 对决</span><span class="sub en">Sanguosha Duel</span></div>
+    <div class="badge-room">房间 ${esc(roomCode)} · 第${s.turn.turnCount}回合 Turn ${s.turn.turnCount}</div>
+  </div>
+  <div class="board">
+    ${playerPanel(s, oppRole, false)}
+    <div class="mid-strip">
+      <span>牌堆 Deck: <b>${s.deck.length}</b></span>
+      <span>弃牌堆 Discard: <b>${s.discard.length}</b></span>
+      <span>当前阶段 Phase: <b class="cjk">${ph[0]}</b> <span class="en">${ph[1]}</span></span>
+    </div>
+    ${playerPanel(s, meRole, true)}
+    ${pendingHtml}
+    ${renderActionArea(s)}
+    <div class="hand-panel">
+      <div class="label">我的手牌 My Hand (${meP.hand.length})</div>
+      <div class="hand-fan">${handHtml || '<span style="color:#6b5c44;font-size:12px">（空）Empty</span>'}</div>
+    </div>
+    <div class="log-panel" id="logPanel">${(s.log||[]).slice().reverse().map(e=>`<div class="entry cjk">${esc(e.zh)}<span class="en">${esc(e.en)}</span></div>`).join('')}</div>
+  </div>`;
+}
+
+function renderPendingBanner(s){
+  const p = s.pending;
+  const mine = p.awaiting===myRole;
+  const attackerName = p.attacker ? s.players[p.attacker].name : (p.caster? s.players[p.caster].name : '');
+  let zh='', en='';
+  if(p.type==='sha'){
+    zh = `${s.players[p.defender].name} 需要打出【闪】${p.needed>1?`（需要${p.needed}张）`:''}，否则受到伤害。`;
+    en = `${s.players[p.defender].name} must play Dodge${p.needed>1?` (needs ${p.needed})`:''} or take damage.`;
+  } else if(p.type==='nullify-window'){
+    zh = `${s.players[other(p.caster)].name} 可以使用【无懈可击】抵消【${CARD_DEFS[p.effect==='juedou'?'juedou':p.card.def].zh}】。`;
+    en = `${s.players[other(p.caster)].name} may play Nullification to cancel [${CARD_DEFS[p.card.def].en}].`;
+  } else if(p.type==='aoe-need'){
+    zh = `${s.players[p.defender].name} 需要打出【${p.kind==='sha'?'杀':'闪'}】，否则受到伤害。`;
+    en = `${s.players[p.defender].name} must play ${p.kind==='sha'?'Slash':'Dodge'} or take damage.`;
+  } else if(p.type==='duel'){
+    zh = `决斗进行中：轮到 ${s.players[p.awaiting].name} 打出【杀】，否则受到伤害。`;
+    en = `Duel in progress: ${s.players[p.awaiting].name} must play Slash or take damage.`;
+  }
+  return `<div class="pending-banner ${mine?'mine':''}"><div class="zh cjk">${zh}</div><div class="en">${en}</div></div>`;
+}
+
+function renderActionArea(s){
+  const meRole = myRole;
+  const myTurn = s.turn.activePlayer===meRole && !s.pending;
+  const p = s.players[meRole];
+  let html = '<div class="action-bar">';
+
+  if(s.pending){
+    const pend = s.pending;
+    if(pend.awaiting===meRole){
+      if(pend.type==='nullify-window'){
+        const wuxieCards = p.hand.filter(c=>c.def==='wuxie');
+        html += `<button class="btn small gold" ${wuxieCards.length?'':'disabled'} onclick="onNullifyClick('${wuxieCards[0]?wuxieCards[0].iid:''}')">使用无懈可击 Play Nullification</button>`;
+        html += `<button class="btn small secondary" onclick="respondNullifyWindow(null)">不使用 Pass</button>`;
+      } else if(pend.type==='sha'){
+        html += `<button class="btn small gold" onclick="onShaRespondClick()">选好闪后确认 Confirm Dodge Selection</button>`;
+        html += `<button class="btn small secondary" onclick="respondShaAttempt([])">承受伤害 Take Damage</button>`;
+        html += `<span class="hint" style="width:100%">点击手牌选择要打出的【闪】（或用赵云替代），选完点击“确认”。 Click hand cards to select Dodge(s), then confirm.</span>`;
+      } else if(pend.type==='aoe-need'){
+        html += `<button class="btn small gold" onclick="onAoeRespondClick()">用选中的牌抵消 Resist with Selected Card</button>`;
+        html += `<button class="btn small secondary" onclick="respondAoe(null)">承受伤害 Take Damage</button>`;
+      } else if(pend.type==='duel'){
+        html += `<button class="btn small gold" onclick="onDuelRespondClick()">打出选中的【杀】 Play Selected Slash</button>`;
+        html += `<button class="btn small secondary" onclick="respondDuel(null)">认输 Concede Exchange</button>`;
+      }
+    } else {
+      html += `<span class="hint">等待对方响应… Waiting for opponent's response…</span>`;
+    }
+    html += '</div>';
+    return html;
+  }
+
+  if(!myTurn){
+    html += `<span class="hint">等待对方回合… Waiting for opponent's turn…</span></div>`;
+    return html;
+  }
+
+  if(s.turn.phase!=='play' && s.turn.phase!=='discard'){
+    html += `<span class="hint">正在处理阶段… Processing phase…</span></div>`;
+    return html;
+  }
+
+  if(s.turn.phase==='discard'){
+    const limit = maxHandSize(s, meRole);
+    const need = p.hand.length - limit;
+    html += `<span class="hint">手牌上限 ${limit}，需弃置 ${Math.max(0,need)} 张。选择手牌后确认。<br>Hand limit ${limit}; discard ${Math.max(0,need)} card(s), then confirm.</span>`;
+    html += `<button class="btn small gold" onclick="onConfirmDiscard()">确认弃牌 Confirm Discard (${selection.cardIids.length}/${Math.max(0,need)})</button>`;
+    html += '</div>';
+    return html;
+  }
+
+  // play phase — action buttons based on selection / hand
+  const sel = selection.cardIids.map(id=>p.hand.find(c=>c.iid===id)).filter(Boolean);
+  const oppRole = other(meRole);
+
+  html += `<button class="btn small secondary" onclick="onPassPlay()">结束出牌阶段 End Play Phase</button>`;
+
+  if(sel.length===1){
+    const c = sel[0];
+    const def = CARD_DEFS[c.def];
+    if(def.type==='basic'){
+      if(c.def==='sha'){
+        const dist = distanceBetween(s, meRole, oppRole);
+        const range = attackRange(s, meRole);
+        const limitOk = s.turn.shaPlayedCount < shaLimit(s, meRole);
+        const legal = dist<=range && limitOk;
+        html += `<button class="btn small" ${legal?'':'disabled'} onclick="actionPlaySha('${c.iid}')">对敌方使用【杀】 Play Slash</button>`;
+        if(!limitOk) html += `<span class="hint">本回合【杀】已用完 Slash limit reached</span>`;
+        if(dist>range) html += `<span class="hint">距离过远（距离${dist} / 攻击范围${range}）Out of range</span>`;
+      } else if(c.def==='tao'){
+        html += `<button class="btn small" onclick="actionPlayTao()">使用【桃】回复体力 Use Peach to Heal</button>`;
+      } else if(c.def==='jiu'){
+        html += `<button class="btn small" onclick="actionPlayJiuBoost()">留待增伤（本回合下一杀+1）Boost Next Slash</button>`;
+        html += `<button class="btn small secondary" onclick="actionJiuHeal()">直接回复1点体力 Heal 1 HP</button>`;
+      } else if(hasGeneral(s, meRole,'guanyu') && isRed(c)){
+        html += `<button class="btn small" onclick="actionPlaySha('${c.iid}')">当【杀】使用（武圣）Use as Slash (Wusheng)</button>`;
+      } else if(hasGeneral(s, meRole,'zhaoyun') && c.def==='shan'){
+        html += `<button class="btn small" onclick="actionPlaySha('${c.iid}')">当【杀】使用（龙胆）Use as Slash (Longdan)</button>`;
+      }
+    } else if(def.type==='trick'){
+      if(c.def==='juedou') html += `<button class="btn small" onclick="actionPlayJuedou()">对敌方使用【决斗】 Play Duel</button>`;
+      else if(c.def==='nanman') html += `<button class="btn small" onclick="actionPlayAoe('nanman')">使用【南蛮入侵】 Play Savage Assault</button>`;
+      else if(c.def==='wanjian') html += `<button class="btn small" onclick="actionPlayAoe('wanjian')">使用【万箭齐发】 Play Arrow Rain</button>`;
+      else if(c.def==='wzsy') html += `<button class="btn small" onclick="actionPlayWuzhongshengyou()">使用【无中生有】 Play Ex Nihilo</button>`;
+      else if(c.def==='taoyuan') html += `<button class="btn small" onclick="actionPlayTaoyuan()">使用【桃园结义】 Play Peach Garden Oath</button>`;
+      else if(c.def==='guohe'){
+        html += `<button class="btn small" onclick="onGuoheClick('${c.iid}','hand')">拆手牌 Discard Hand Card</button>`;
+        ['weapon','armor','horseplus','horseminus'].forEach(sl=>{ if(s.players[oppRole].equip[sl]) html += `<button class="btn small" onclick="onGuoheClick('${c.iid}','${sl}')">拆装备:${CARD_DEFS[s.players[oppRole].equip[sl].def].zh} Discard Equip</button>`; });
+      } else if(c.def==='shunshou'){
+        const dist = distanceBetween(s, meRole, oppRole);
+        const legal = dist<=1;
+        html += `<button class="btn small" ${legal?'':'disabled'} onclick="onShunshouClick('${c.iid}','hand')">夺手牌 Take Hand Card</button>`;
+        if(legal) ['weapon','armor','horseplus','horseminus'].forEach(sl=>{ if(s.players[oppRole].equip[sl]) html += `<button class="btn small" onclick="onShunshouClick('${c.iid}','${sl}')">夺装备:${CARD_DEFS[s.players[oppRole].equip[sl].def].zh} Take Equip</button>`; });
+        if(!legal) html += `<span class="hint">距离过远（需要距离≤1）Too far (needs distance ≤1)</span>`;
+      } else if(c.def==='lebu') html += `<button class="btn small" onclick="actionPlayDelay('lebu')">使用【乐不思蜀】 Play Indulgence</button>`;
+      else if(c.def==='bingliang') html += `<button class="btn small" onclick="actionPlayDelay('bingliang')">使用【兵粮寸断】 Play Supply Shortage</button>`;
+      else if(c.def==='shandian') html += `<button class="btn small" onclick="actionPlayDelay('shandian')">使用【闪电】（对自己）Play Lightning (self)</button>`;
+      else if(c.def==='huogong'){
+        html += SUITS.map(su=>`<button class="btn small" onclick="onHuogongClick('${c.iid}','${su}')">火攻宣告 ${su} Fire Attack: ${su}</button>`).join('');
+      } else if(hasGeneral(s, meRole,'daqiao') && c.suit==='♦'){
+        html += `<button class="btn small" onclick="onGuoheClick('${c.iid}','hand',true)">当【过河拆桥】(国色) Use as Dismantle</button>`;
+      } else if(hasGeneral(s, meRole,'ganning') && (c.suit==='♠'||c.suit==='♣')){
+        html += `<button class="btn small" onclick="onGuoheClick('${c.iid}','hand',true)">当【过河拆桥】(奇袭) Use as Dismantle</button>`;
+      }
+    } else if(def.type==='weapon' || def.type==='armor' || def.type.startsWith('horse')){
+      html += `<button class="btn small" onclick="actionPlayEquip('${c.iid}')">装备 Equip</button>`;
+    }
+  } else if(sel.length===0){
+    html += `<span class="hint">点击一张手牌查看可用操作。 Click a hand card to see actions.</span>`;
+  } else {
+    html += `<span class="hint">一次只能选择一张牌来打出（弃牌阶段除外）。Select one card at a time to play.</span>`;
+  }
+
+  if(!s.turn.kurouUsed && hasGeneral(s, meRole,'huanggai') && p.hp>1){
+    html += `<button class="btn small gold" onclick="actionUseKurou()">苦肉：失去1血摸2牌 Kurou: -1 HP, +2 Cards</button>`;
+  }
+
+  html += '</div>';
+  return html;
+}
+
+function renderGameOver(s){
+  const w = s.players[s.winner];
+  const iWon = s.winner===myRole;
+  return `<div class="overlay"><div class="modal" style="text-align:center">
+    <div class="winner-banner">
+      <div class="zh cjk">${iWon?'你获胜了！':'你败北了……'}</div>
+      <div class="en">${iWon?'Victory!':'Defeat...'} — ${esc(w.name)} (${generalById(w.generalId).zh}/${esc(generalById(w.generalId).en)}) wins</div>
+    </div>
+    <button class="btn" onclick="leaveRoom()">返回主页 Back to Home</button>
+  </div></div>`;
+}
+
+function renderOverlay(){
+  const root = document.getElementById('overlayRoot');
+  if(!helpOpen){ root.innerHTML=''; return; }
+  root.innerHTML = `
+  <div class="overlay" onclick="if(event.target===this) toggleHelp()">
+    <div class="modal">
+      <h3 class="cjk">规则速览<span class="en">Quick Rules</span></h3>
+      <div class="help-body">
+        <h4 class="cjk">回合流程 <span class="en">Turn Order</span></h4>
+        准备 → 判定 → 摸牌(2张) → 出牌 → 弃牌(上限=体力) → 结束
+        <div class="en">Start → Judge → Draw (2) → Play → Discard (limit = HP) → End</div>
+        <h4 class="cjk">基本牌 <span class="en">Basic Cards</span></h4>
+        【杀】造成1点伤害，需在攻击范围内；【闪】抵消一次【杀】；【桃】/【酒】回复体力。
+        <div class="en">Slash deals 1 dmg within range; Dodge cancels one Slash; Peach/Wine heal HP.</div>
+        <h4 class="cjk">锦囊牌 <span class="en">Trick Cards</span></h4>
+        可被【无懈可击】抵消（装备牌不可）。延时锦囊放入判定区，在拥有者的判定阶段生效。
+        <div class="en">Tricks can be nullified (equipment cannot). Delayed tricks resolve at owner's Judge phase.</div>
+        <h4 class="cjk">武将技能 <span class="en">General Skills</span></h4>
+        每位武将拥有独特技能，详见选将界面卡片说明。
+        <div class="en">Each general has a unique skill — see the selection screen for details.</div>
+        <h4 class="cjk">胜负 <span class="en">Victory</span></h4>
+        体力降至0即阵亡，对方获胜。
+        <div class="en">A player falls at 0 HP; the opponent wins.</div>
+      </div>
+      <div class="modal opts"><button class="btn small" onclick="toggleHelp()">关闭 Close</button></div>
+    </div>
+  </div>`;
+}
+
+/* ---------------------------- INTERACTION GLUE ---------------------------- */
+function onHandCardClick(cid){
+  const s = localState; const meRole = myRole;
+  if(s.turn.phase==='discard' && s.turn.activePlayer===meRole){
+    const i = selection.cardIids.indexOf(cid);
+    if(i>=0) selection.cardIids.splice(i,1); else selection.cardIids.push(cid);
+    render(); return;
+  }
+  if(s.pending && s.pending.awaiting===meRole){
+    if(s.pending.type==='sha' && s.pending.needed>1){
+      const i = selection.cardIids.indexOf(cid);
+      if(i>=0) selection.cardIids.splice(i,1); else selection.cardIids.push(cid);
+      render(); return;
+    }
+    if(s.pending.type==='sha' || s.pending.type==='aoe-need' || s.pending.type==='duel'){
+      selection.cardIids = [cid]; // single-select for these response types
+      render(); return;
+    }
+    return;
+  }
+  // play phase single select
+  selection.cardIids = selection.cardIids.includes(cid) ? [] : [cid];
+  render();
+}
+function onPassPlay(){ selection.cardIids=[]; actionEndPlayPhase(); }
+function onConfirmDiscard(){ const ids = selection.cardIids.slice(); selection.cardIids=[]; actionDiscard(ids); }
+function onNullifyClick(cid){ if(!cid) return; respondNullifyWindow(cid); }
+function onShaRespondClick(){ const ids = selection.cardIids.slice(); selection.cardIids=[]; respondShaAttempt(ids); }
+function onAoeRespondClick(){ const cid = selection.cardIids[0]; selection.cardIids=[]; respondAoe(cid); }
+function onDuelRespondClick(){ const cid = selection.cardIids[0]; selection.cardIids=[]; respondDuel(cid); }
+function onGuoheClick(cid, slot){ selection.cardIids=[]; actionPlayGuoheOrEquiv(cid, slot); }
+function onShunshouClick(cid, slot){ selection.cardIids=[]; actionPlayShunshou(cid, slot); }
+function onHuogongClick(cid, suit){ selection.cardIids=[]; actionPlayHuogong(cid, suit); }
+
+/* ---------------------------- ROOM LIFECYCLE ---------------------------- */
+async function createRoom(){
+  const code = uid(4);
+  const state = {
+    version:1, phase:'lobby', createdAt:Date.now(),
+    players:{ host:{name:'Player 1', generalId:null, ready:false}, guest:null },
+    log:[]
+  };
+  roomCode = code; myRole='host';
+  await saveMe(code,'host');
+  await writeRoom(code, state);
+  startPolling();
+}
+async function joinRoomClick(){
+  const el = document.getElementById('joinCode');
+  const code = (el.value||'').trim().toUpperCase();
+  if(!code) return;
+  const state = await readRoom(code);
+  if(!state){ alert('房间不存在 Room not found'); return; }
+  if(state.players.guest){ alert('房间已满 Room is full'); return; }
+  state.version = (state.version||0)+1;
+  state.players.guest = {name:'Player 2', generalId:null, ready:false};
+  roomCode = code; myRole='guest';
+  await saveMe(code,'guest');
+  await writeRoom(code, state);
+  startPolling();
+}
+async function hostAdvanceToSelect(){
+  if(myRole!=='host') return;
+  await mutate(s=>{ s.phase='select'; });
+}
+async function pickGeneral(gid){
+  await mutate(s=>{ s.players[myRole].generalId = gid; s.players[myRole].ready=false; });
+}
+async function markReady(){
+  await mutate(s=>{
+    s.players[myRole].ready = true;
+  });
+}
+async function maybeHostStartBattle(){
+  if(myRole!=='host' || !localState) return;
+  const s = localState;
+  if(s.phase==='select' && s.players.host && s.players.guest && s.players.host.ready && s.players.guest.ready){
+    await mutate(st=>{
+      if(st.phase==='select' && st.players.host.ready && st.players.guest.ready){ startBattle(st); }
+    });
+  }
+}
+async function leaveRoom(){
+  stopPolling();
+  await clearMe();
+  roomCode=null; myRole=null; localState=null; selection={cardIids:[],mode:null};
+  render();
+}
+
+function startPolling(){
+  stopPolling();
+  pollTimer = setInterval(pollOnce, 1400);
+  pollOnce();
+}
+function stopPolling(){ if(pollTimer){ clearInterval(pollTimer); pollTimer=null; } }
+
+async function pollOnce(){
+  if(!roomCode) return;
+  const s = await readRoom(roomCode);
+  if(!s) return;
+  const changed = !localState || s.version!==localState.version;
+  localState = s;
+  if(changed) render();
+  // auto-advance phases if it's my turn
+  try{ await maybeHostStartBattle(); }catch(e){ /* ignore transient race */ }
+  try{ await runAutoPhases(); }catch(e){ /* ignore transient race */ }
+}
+
+/* ---------------------------- BOOT ---------------------------- */
+async function boot(){
+  const me = await loadMe();
+  if(me && me.code){
+    roomCode = me.code; myRole = me.role;
+    const s = await readRoom(roomCode);
+    if(s){ localState = s; startPolling(); return; }
+    else { await clearMe(); }
+  }
+  render();
+}
+boot();
+</script>
+</body>
+</html>
