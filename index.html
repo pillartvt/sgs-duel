@@ -1,5 +1,32 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+  import { getDatabase, ref, set, get, remove, onValue } 
+    from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCNdL9fp3EVKG7lndHXxW6EqQ244s92088",
+    authDomain: "sgs-duel.firebaseapp.com",
+    databaseURL: "https://sgs-duel-default-rtdb.firebaseio.com",
+    projectId: "sgs-duel",
+    storageBucket: "sgs-duel.firebasestorage.app",
+    messagingSenderId: "846672275189",
+    appId: "1:846672275189:web:880126acc9b7aa514dc7bc"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  window.firebaseDB = {
+    db,
+    ref,
+    set,
+    get,
+    remove,
+    onValue
+  };
+</script>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
@@ -299,30 +326,69 @@ function generalById(id){ return GENERALS.find(g=>g.id===id); }
 /* ---------------------------- STORAGE HELPERS ---------------------------- */
 async function readRoom(code){
   try{
-    const r = await window.storage.get(STORAGE_PREFIX+code, true);
-    if(!r) return null;
-    return JSON.parse(r.value);
-  }catch(e){ return null; }
+    const roomRef = window.firebaseDB.ref(
+      window.firebaseDB.db,
+      STORAGE_PREFIX + code
+    );
+
+    const snapshot = await window.firebaseDB.get(roomRef);
+
+    if(!snapshot.exists()) return null;
+
+    return snapshot.val();
+  }catch(e){
+    console.error("readRoom failed:", e);
+    return null;
+  }
 }
+
 async function writeRoom(code, state){
-  state.updatedAt = Date.now();
-  await window.storage.set(STORAGE_PREFIX+code, JSON.stringify(state), true);
-  localState = state;
-  lastRenderedVersion = -1;
-  render();
+  try{
+    state.updatedAt = Date.now();
+
+    const roomRef = window.firebaseDB.ref(
+      window.firebaseDB.db,
+      STORAGE_PREFIX + code
+    );
+
+    await window.firebaseDB.set(roomRef, state);
+
+    localState = state;
+    lastRenderedVersion = -1;
+    render();
+
+  }catch(e){
+    console.error("writeRoom failed:", e);
+    alert("房间保存失败，请检查 Firebase Database Rules 和网络连接。");
+    throw e;
+  }
 }
+
 async function saveMe(code, role){
-  try{ await window.storage.set(ME_KEY, JSON.stringify({code,role}), false); }catch(e){}
+  try{
+    localStorage.setItem(
+      ME_KEY,
+      JSON.stringify({code, role})
+    );
+  }catch(e){}
 }
+
 async function loadMe(){
   try{
-    const r = await window.storage.get(ME_KEY, false);
-    if(!r) return null;
-    return JSON.parse(r.value);
-  }catch(e){ return null; }
+    const value = localStorage.getItem(ME_KEY);
+
+    if(!value) return null;
+
+    return JSON.parse(value);
+  }catch(e){
+    return null;
+  }
 }
+
 async function clearMe(){
-  try{ await window.storage.delete(ME_KEY, false); }catch(e){}
+  try{
+    localStorage.removeItem(ME_KEY);
+  }catch(e){}
 }
 
 /* A mutate-and-write helper: refetch latest, apply fn, write back. */
